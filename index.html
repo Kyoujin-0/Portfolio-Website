@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Godyvir Binalay | Portfolio</title>
+  <meta name="description" content="Portfolio of Godyvir Binalay, BSIT student and aspiring web and software developer." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script>
+    // Apply saved theme before first paint (no animation on load)
+    try { if (localStorage.getItem('theme') === 'dark') { document.documentElement.classList.add('theme-dark', 'no-anim'); } } catch (e) {}
+  </script>
+</head>
+<body>
+
+  <!-- Icon sprite -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+    <symbol id="i-cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3"/></symbol>
+    <symbol id="i-briefcase" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><polyline points="22,6 12,13 2,6"/></symbol>
+    <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></symbol>
+    <symbol id="i-facebook" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></symbol>
+    <symbol id="i-instagram" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></symbol>
+    <symbol id="i-pen" viewBox="0 0 24 24"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></symbol>
+    <symbol id="i-tool" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></symbol>
+    <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></symbol>
+    <symbol id="i-award" viewBox="0 0 24 24"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol>
+    <symbol id="i-box" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></symbol>
+  </svg>
+
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="profile">
+        <div class="avatar" aria-label="Profile photo">
+          <!-- Replace photo.jpg with your picture (same folder as index.html) -->
+          <img src="photo.jpg" alt="Godyvir Binalay" onerror="this.remove()" />
+          <span>GB</span>
+        </div>
+        <div class="who">
+          <h2 class="name">Godyvir Binalay</h2>
+          <p class="handle">@Kyoujin-0</p>
+        </div>
+      </div>
+
+      <div class="socials">
+        <a class="soc" href="https://github.com/Kyoujin-0" target="_blank" rel="noopener" aria-label="GitHub"><svg><use href="#i-github"/></svg></a>
+        <!-- TODO: put your real Facebook and Instagram URLs here -->
+        <a class="soc" href="#home" target="_blank" rel="noopener" aria-label="Facebook"><svg><use href="#i-facebook"/></svg></a>
+        <a class="soc" href="#home" target="_blank" rel="noopener" aria-label="Instagram"><svg><use href="#i-instagram"/></svg></a>
+        <button id="themeToggle" class="soc" aria-label="Toggle dark mode" title="Toggle dark mode">
+          <svg class="i-moon"><use href="#i-moon"/></svg>
+          <svg class="i-sun"><use href="#i-sun"/></svg>
+        </button>
+      </div>
+
+      <nav class="side-nav" aria-label="Main">
+        <a href="#home" data-view="home" class="active"><svg><use href="#i-home"/></svg>Home</a>
+        <a href="#projects" data-view="projects"><svg><use href="#i-folder"/></svg>Projects</a>
+        <a href="#designs" data-view="designs"><svg><use href="#i-pen"/></svg>Designs</a>
+        <a href="#certificates" data-view="certificates"><svg><use href="#i-award"/></svg>Certificates</a>
+        <a href="#skills" data-view="skills"><svg><use href="#i-cpu"/></svg>Skills</a>
+        <a href="#experience" data-view="experience"><svg><use href="#i-briefcase"/></svg>Experience</a>
+        <a href="#about" data-view="about"><svg><use href="#i-user"/></svg>About</a>
+        <a href="#contact" data-view="contact"><svg><use href="#i-mail"/></svg>Contact</a>
+      </nav>
+
+      <p class="copy">&copy; <span id="year">2026</span> Godyvir Binalay</p>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+
+      <!-- ============ HOME ============ -->
+      <div id="view-home" class="view active">
+        <header class="hero">
+          <div>
+            <h1>Driven by Curiosity, <span>Defined by Creation</span></h1>
+            <p class="lead">BSIT student building desktop and web apps with VB.NET, Java, and the web stack.</p>
+          </div>
+          <div class="hero-cta">
+            <a class="btn dark" href="#contact">Get in touch <svg><use href="#i-mail"/></svg></a>
+            <a class="btn ghost" href="Godyvir_Binalay_Resume.pdf" download>Resume <svg><use href="#i-download"/></svg></a>
+          </div>
+        </header>
+
+        <!-- TOOLS STRIP -->
+        <section class="card tools" aria-label="Tools">
+          <div class="tools-label"><small>Daily drivers</small><b>Tools I work with</b></div>
+          <div class="marquee"><ul id="marquee">
+            <!-- To use a real logo: put icons/vbnet.svg (etc.) in the icons folder. It replaces the colored badge automatically. -->
+            <li><span class="ico" style="--c:#512bd4"><b>VB</b><img src="icons/vbnet.svg" alt="" onload="this.parentNode.classList.add('has-img')" onerror="this.remove()"></span>VB.NET</li>
+            <li><span class="ico" style="--c:#e76f00"><b>Jv</b><img src="icons/java.svg" alt="" onload="this.parentNode.classList.add('has-img')" onerror="this.remove()"></span>Java</li>
+            <li><span class="ico" style="--c:#1c6ea4"><b>Fx</b><img src="icons/javafx.svg" alt="" onload="this.parentNode.classList.add('has-img')" onerror="this.remove()"></span>JavaFX</li>
+            <li><span class="ico" style="--c:#00758f"><b>My</b><img src="icons/mysql.svg" alt="" onload="this.parentNode.classList.add('has-img')" onerror="this.remove()"></span>MySQL</li>
+            <li><span class="ico" style="--c:#e34f26"><b>H5</b><img src="icons/html.svg" alt="" onload="this.parentNode.classList.add('has-img')" onerror="this.remove()"></span>HTML</li>
+            <li><span class="ico" style="--c:#1572b6"><b>C3</b><img src="icons/css.svg" alt="" onload="this.parentNode.classList.add('has-img')" onerror="this.remove()"></span>CSS</li>
+            <li><span class="ico" style="--c:#f0c808;--t:#1a1a1a"><b>JS</b><img src="icons/javascript.svg" alt="" onload="this.parentNode.classList.add('has-img')" onerror="this.remove()"></span>JavaScript</li>
+            <li><span class="ico" style="--c:#a259ff"><b>Fg</b><img src="icons/figma.svg" alt="" onload="this.parentNode.classList.add('has-img')" onerror="this.remove()"></span>Figma</li>
+            <li><span class="ico" style="--c:#2b3137"><b>Gh</b><img src="icons/github.svg" alt="" onload="this.parentNode.classList.add('has-img')" onerror="this.remove()"></span>GitHub</li>
+          </ul></div>
+        </section>
+
+        <!-- BENTO -->
+        <div class="bento">
+
+          <section class="card hc c-projects" data-go="projects" tabindex="0" role="link" aria-label="Open projects">
+            <div class="pl">
+              <div class="card-head"><span class="badge"><svg><use href="#i-folder"/></svg></span><h2>Projects</h2></div>
+              <p class="sub">Apps and systems built to solve real problems.</p>
+              <span class="more">View all &rarr;</span>
+            </div>
+            <div class="preview" id="preview">
+              <div class="slide on">
+                <div class="bar"><i></i><i></i><i></i><span>EzyBuy</span></div>
+                <p class="stitle">Shop from many sellers, <em>in one cart.</em></p>
+                <ul class="chips small"><li>Java</li><li>JavaFX</li><li>MySQL</li></ul>
+              </div>
+              <div class="slide">
+                <div class="bar"><i></i><i></i><i></i><span>Food Court Ordering Hub</span></div>
+                <p class="stitle">Order from every stall, <em>one place.</em></p>
+                <ul class="chips small"><li>VB.NET</li><li>Windows Forms</li></ul>
+              </div>
+              <div class="slide">
+                <div class="bar"><i></i><i></i><i></i><span>Isles Management System</span></div>
+                <p class="stitle">Run the food court <em>from the web.</em></p>
+                <ul class="chips small"><li>HTML</li><li>CSS</li><li>JavaScript</li><li>PWA</li></ul>
+              </div>
+              <div class="slide">
+                <div class="bar"><i></i><i></i><i></i><span>Login &amp; Registration</span></div>
+                <p class="stitle">Sign up. <em>Sign in.</em></p>
+                <ul class="chips small"><li>VB.NET</li><li>OOP</li></ul>
+              </div>
+              <div class="dots" id="dots"><button aria-label="Slide 1" class="on"></button><button aria-label="Slide 2"></button><button aria-label="Slide 3"></button><button aria-label="Slide 4"></button></div>
+            </div>
+          </section>
+
+          <section class="card hc c-about" data-go="about" tabindex="0" role="link" aria-label="Open about">
+            <div class="card-head"><span class="badge"><svg><use href="#i-user"/></svg></span><h2>About</h2></div>
+            <p class="sub">Who I am and how I work.</p>
+            <div class="stack"><div></div><div></div><div class="front"><img src="photo.jpg" alt="" onerror="this.remove()" /><span>GB</span></div></div>
+          </section>
+
+          <section class="card hc c-designs" data-go="designs" tabindex="0" role="link" aria-label="Open designs">
+            <div class="card-head"><span class="badge"><svg><use href="#i-pen"/></svg></span><h2>Designs</h2></div>
+            <p class="sub">Visual work I've created in 2D and 3D.</p>
+            <div class="duo">
+              <div class="duo-tile"><span class="badge"><svg><use href="#i-image"/></svg></span><b>2D</b></div>
+              <div class="duo-tile"><span class="badge"><svg><use href="#i-box"/></svg></span><b>3D</b></div>
+            </div>
+          </section>
+
+          <section class="card hc c-certs" data-go="certificates" tabindex="0" role="link" aria-label="Open certificates">
+            <div class="card-head"><span class="badge"><svg><use href="#i-award"/></svg></span><h2>Certificates</h2></div>
+            <p class="sub">Courses and training I've completed.</p>
+            <div class="ring-wrap"><div class="ring"><svg><use href="#i-award"/></svg></div><span class="pill">View certificates</span></div>
+          </section>
+
+          <section class="card hc c-skills" data-go="skills" tabindex="0" role="link" aria-label="Open skills">
+            <div class="card-head"><span class="badge"><svg><use href="#i-cpu"/></svg></span><h2>Skills</h2></div>
+            <p class="sub">What I can build and fix.</p>
+            <ul class="numlist">
+              <li><span class="ni"><svg><use href="#i-monitor"/></svg></span>Web Development<em>01</em></li>
+              <li><span class="ni"><svg><use href="#i-code"/></svg></span>Computer Programming<em>02</em></li>
+              <li><span class="ni"><svg><use href="#i-pen"/></svg></span>Graphic Designing<em>03</em></li>
+              <li><span class="ni"><svg><use href="#i-tool"/></svg></span>PC Troubleshooting<em>04</em></li>
+              <li><span class="ni"><svg><use href="#i-cpu"/></svg></span>Problem Solving<em>05</em></li>
+            </ul>
+          </section>
+
+          <section class="card hc c-experience" data-go="experience" tabindex="0" role="link" aria-label="Open experience">
+            <div class="card-head"><span class="badge"><svg><use href="#i-briefcase"/></svg></span><h2>Work Experience</h2></div>
+            <p class="sub">Where I've worked so far.</p>
+            <div class="xrows">
+              <div class="xrow">
+                <span class="xi"><svg><use href="#i-briefcase"/></svg></span>
+                <div><b>Service Crew</b><small>Happy Haus Donut</small><u>Inventory &middot; Customer Service &middot; Cash</u></div>
+                <em>Apr - Jun 2026</em>
+              </div>
+              <div class="xrow">
+                <span class="xi"><svg><use href="#i-tool"/></svg></span>
+                <div><b>IT Assistant</b><small>Artzwork PC</small><u>Diagnostics &middot; Repairs &middot; PC Builds</u></div>
+                <em>Mar - Apr 2025</em>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </div>
+
+      <!-- ============ PROJECTS ============ -->
+      <div id="view-projects" class="view">
+        <div class="vhead"><h1>Projects</h1><p>Apps and systems I've built for school and for fun.</p></div>
+        <div class="minis">
+          <section class="card mini-card">
+            <h3>EzyBuy <small>(formerly Voltes Cart)</small></h3>
+            <p>A multi-seller shopping cart app with product browsing, order tracking, and user profiles.</p>
+            <ul class="chips small"><li>Java</li><li>JavaFX</li><li>MySQL</li></ul>
+            <a class="link" href="https://github.com/Kyoujin-0" target="_blank" rel="noopener">View on GitHub &rarr;</a>
+          </section>
+          <section class="card mini-card">
+            <h3>Food Court Ordering Hub</h3>
+            <p>A centralized ordering system for food parks and food courts. Customers order from multiple stalls in one place. Seller and admin sides are planned next.</p>
+            <ul class="chips small"><li>VB.NET</li><li>Windows Forms</li></ul>
+            <a class="link" href="https://github.com/Kyoujin-0" target="_blank" rel="noopener">View on GitHub &rarr;</a>
+          </section>
+          <section class="card mini-card">
+            <h3>Isles Management System</h3>
+            <p>A food court management web app, installable as a PWA, built from a 1920x1080 Figma design.</p>
+            <ul class="chips small"><li>HTML</li><li>CSS</li><li>JavaScript</li><li>PWA</li></ul>
+            <a class="link" href="https://github.com/Kyoujin-0" target="_blank" rel="noopener">View on GitHub &rarr;</a>
+          </section>
+          <section class="card mini-card">
+            <h3>Login &amp; Registration System</h3>
+            <p>An OOP activity: a Windows Forms app where users register an account and log in.</p>
+            <ul class="chips small"><li>VB.NET</li><li>OOP</li></ul>
+            <a class="link" href="https://github.com/Kyoujin-0" target="_blank" rel="noopener">View on GitHub &rarr;</a>
+          </section>
+        </div>
+      </div>
+
+      <!-- ============ DESIGNS ============ -->
+      <div id="view-designs" class="view">
+        <div class="vhead"><h1>Designs</h1><p>My 2D and 3D work.</p></div>
+        <section class="card">
+          <div class="card-head"><span class="badge"><svg><use href="#i-image"/></svg></span><h2>2D Designs</h2></div>
+          <!-- Add images to the designs folder as 2d-1.jpg, 2d-2.jpg ... they replace the placeholders automatically -->
+          <div class="gallery" data-gallery="designs/2d-" data-count="6" data-label="2D design"></div>
+        </section>
+        <section class="card">
+          <div class="card-head"><span class="badge"><svg><use href="#i-box"/></svg></span><h2>3D Designs</h2></div>
+          <!-- Add images to the designs folder as 3d-1.jpg, 3d-2.jpg ... -->
+          <div class="gallery" data-gallery="designs/3d-" data-count="6" data-label="3D design"></div>
+        </section>
+      </div>
+
+      <!-- ============ CERTIFICATES ============ -->
+      <div id="view-certificates" class="view">
+        <div class="vhead"><h1>Certificates</h1><p>Courses and training I've completed.</p></div>
+        <section class="card">
+          <div class="card-head"><span class="badge"><svg><use href="#i-award"/></svg></span><h2>Certificates</h2></div>
+          <!-- Add images to the certificates folder as cert-1.jpg, cert-2.jpg ... -->
+          <div class="gallery" data-gallery="certificates/cert-" data-count="4" data-label="Certificate"></div>
+        </section>
+      </div>
+
+      <!-- ============ SKILLS ============ -->
+      <div id="view-skills" class="view">
+        <div class="vhead"><h1>Skills</h1><p>What I can build and fix.</p></div>
+        <div class="two">
+          <section class="card">
+            <div class="card-head"><span class="badge"><svg><use href="#i-code"/></svg></span><h2>Technical</h2></div>
+            <ul class="chips big">
+              <li>Web Development</li><li>Computer Programming</li><li>Graphic Designing</li><li>PC Troubleshooting</li><li>PC Building</li>
+              <li>VB.NET</li><li>Java</li><li>HTML / CSS / JavaScript</li>
+            </ul>
+          </section>
+          <section class="card">
+            <div class="card-head"><span class="badge"><svg><use href="#i-user"/></svg></span><h2>Personal</h2></div>
+            <ul class="chips big">
+              <li>Problem Solving</li><li>Trustworthy</li><li>Attention to Detail</li><li>Adaptability</li><li>Driving</li>
+            </ul>
+          </section>
+        </div>
+      </div>
+
+      <!-- ============ EXPERIENCE ============ -->
+      <div id="view-experience" class="view">
+        <div class="vhead"><h1>Work Experience</h1><p>Where I've worked so far.</p></div>
+        <section class="card">
+          <ul class="jobs">
+            <li>
+              <div class="row"><h3>Service Crew <span>| Happy Haus Donut</span></h3><em>April 2026 - June 2026</em></div>
+              <ul class="bullets"><li>Managed inventory and product display</li><li>Served customers and handled cash transactions</li></ul>
+            </li>
+            <li>
+              <div class="row"><h3>IT Assistant <span>| Artzwork PC</span></h3><em>March 2025 - April 2025</em></div>
+              <ul class="bullets"><li>Diagnosed and fixed computers</li><li>Built and set up computers based on customers' requests</li></ul>
+            </li>
+          </ul>
+        </section>
+      </div>
+
+      <!-- ============ ABOUT ============ -->
+      <div id="view-about" class="view">
+        <div class="vhead"><h1>About</h1><p>Who I am and how I work.</p></div>
+        <div class="two">
+          <section class="card">
+            <div class="card-head"><span class="badge"><svg><use href="#i-user"/></svg></span><h2>About Me</h2></div>
+            <p class="body">I'm a BSIT student at the University of Caloocan City who likes turning ideas into working programs. I've also worked as an IT assistant and a service crew member, so I'm comfortable with both tech and real customers.</p>
+            <dl class="facts">
+              <div><dt>Age</dt><dd>19</dd></div>
+              <div><dt>Birth Place</dt><dd>Valenzuela</dd></div>
+              <div><dt>Birth Date</dt><dd>June 25, 2007</dd></div>
+              <div><dt>Civil Status</dt><dd>Single</dd></div>
+              <div><dt>Language</dt><dd>Filipino, English</dd></div>
+            </dl>
+          </section>
+          <section class="card">
+            <div class="card-head"><span class="badge"><svg><use href="#i-book"/></svg></span><h2>Education</h2></div>
+            <ul class="edu">
+              <li><b>College</b><span>University of Caloocan City<small>BS Information Technology</small></span><em>2025 - Present</em></li>
+              <li><b>Senior High</b><span>St. Clare College</span><em>2023 - 2025</em></li>
+              <li><b>Junior High</b><span>Benigno Aquino Jr. High School</span><em>2018 - 2023</em></li>
+              <li><b>Elementary</b><span>Bagong Silang Elementary School</span><em>2012 - 2018</em></li>
+            </ul>
+          </section>
+        </div>
+      </div>
+
+      <!-- ============ CONTACT ============ -->
+      <div id="view-contact" class="view">
+        <div class="vhead"><h1>Contact</h1><p>Let's work together.</p></div>
+        <section class="card">
+          <ul class="contact">
+            <li><svg><use href="#i-pin"/></svg><span>Phase 4B Package 9 Blk 84 Lot 9 Bagong Silang, Caloocan City</span></li>
+            <li><svg><use href="#i-phone"/></svg><a href="tel:09054058905">0905 405 8905</a></li>
+            <li><svg><use href="#i-mail"/></svg><a href="mailto:godyvirbinalay@gmail.com">godyvirbinalay@gmail.com</a></li>
+            <li><svg><use href="#i-github"/></svg><a href="https://github.com/Kyoujin-0" target="_blank" rel="noopener">github.com/Kyoujin-0</a></li>
+          </ul>
+          <a class="btn dark dl" href="Godyvir_Binalay_Resume.pdf" download>Download Resume <svg><use href="#i-download"/></svg></a>
+        </section>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
