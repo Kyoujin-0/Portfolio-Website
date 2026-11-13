@@ -1,0 +1,116 @@
+/* Projects: home preview carousel + Projects page (focus shift) + All Projects placeholder */
+/* projects preview */
+.pl { display: flex; flex-direction: column; width: 34%; flex-shrink: 0; }
+.more { margin-top: auto; color: var(--accent); font-weight: 600; font-size: 0.85rem; }
+/* browser-window scroller (home card) */
+.pv { position: relative; flex: 1; min-width: 0; min-height: 11rem; border-radius: 1rem; overflow: hidden; }
+.pv-track { position: absolute; inset: 0.4rem; display: flex; flex-direction: column; gap: 1rem;
+  transition: transform 0.9s cubic-bezier(0.65, 0, 0.35, 1); will-change: transform; }
+.pv-win { flex: 0 0 100%; min-height: 0; display: flex; flex-direction: column; border-radius: 0.9rem; overflow: hidden; cursor: pointer;
+  background: #fff; color: #1a2340; box-shadow: 0 2px 10px rgba(26, 35, 64, 0.12), 0 0 0 1px rgba(26, 35, 64, 0.08);
+  transition: background 0.6s, color 0.6s, box-shadow 0.6s; }
+.card.dark .pv-win { background: #2a2420; color: #f1ece4; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.08); }
+.pv-bar { display: flex; align-items: center; gap: 0.3rem; padding: 0.5rem 0.75rem; font-size: 0.68rem; flex-shrink: 0; }
+.pv-bar i { width: 0.45rem; height: 0.45rem; border-radius: 50%; background: color-mix(in srgb, currentColor 25%, transparent); }
+.pv-bar i:first-child { background: var(--accent); }
+.pv-bar span { margin-left: 0.5rem; opacity: 0.5; font-weight: 600; }
+.pv-body { position: relative; isolation: isolate; flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 0.5rem; padding: 0.6rem 0.9rem 0.8rem;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%); }
+.pv-win:nth-child(even) .pv-body { background: linear-gradient(225deg, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%); }
+.pv-shot { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 1; z-index: -1; }
+.has-shot .pv-title, .has-shot .chips { display: none; }
+.pv-title { font: 700 clamp(0.95rem, 1.7vw, 1.7rem) / 1.12 'Montserrat', sans-serif; margin: auto 0 0; opacity: 1 !important; }
+.pv-title em { color: var(--accent); font-style: italic; font-weight: 600; }
+.pv-body .chips { gap: 0.35rem; }
+
+/* Projects page: focus shift. Each project is ONE absolutely-positioned item; changing its pos-N class makes it travel. */
+.fs-all { display: inline-block; margin-top: 0.55rem; color: var(--accent); font-weight: 600; font-size: 0.9rem; text-decoration: none; }
+.fs-all:hover { text-decoration: underline; }
+/* height: fills most of the window. Raise/lower the 14.5rem to make the showcase shorter/taller */
+.fs { --g: 1.1rem; position: relative; height: clamp(28rem, calc(100vh - 14.5rem), 64rem); margin-top: 1rem; }
+.fs-item { position: absolute; z-index: 1; perspective: 90rem; border-radius: 1.2rem;
+  transition: left 0.8s cubic-bezier(0.65, 0, 0.35, 1), top 0.8s cubic-bezier(0.65, 0, 0.35, 1), width 0.8s cubic-bezier(0.65, 0, 0.35, 1),
+    height 0.8s cubic-bezier(0.65, 0, 0.35, 1), border-radius 0.8s, transform 0.35s, box-shadow 0.35s; }
+.fs-item.is-main { z-index: 2; border-radius: 1.4rem; }
+.fs-item:not(.is-main) { cursor: pointer; }
+.fs-item:not(.is-main):hover { transform: translateY(-0.2rem); box-shadow: 0 0.6rem 1.4rem rgba(26, 35, 64, 0.22); }
+.fs-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.fs.no-anim .fs-item, .fs.no-anim .fs-inner { transition: none; }
+/* slots: big panel on the left (70%), three tiles stacked on the right */
+.pos-0 { left: 0; top: 0; width: calc(70% - var(--g) / 2); height: 100%; }
+.pos-1, .pos-2, .pos-3 { left: calc(70% + var(--g) / 2); width: calc(30% - var(--g) / 2); height: calc((100% - 2 * var(--g)) / 3); }
+.pos-1 { top: 0; }
+.pos-2 { top: calc((100% - 2 * var(--g)) / 3 + var(--g)); }
+.pos-3 { top: calc(2 * ((100% - 2 * var(--g)) / 3 + var(--g))); }
+.fs.solo .pos-0 { width: 100%; }
+
+.fs-inner { position: absolute; inset: 0; border-radius: inherit; transform-style: preserve-3d; transition: transform 0.7s cubic-bezier(0.65, 0, 0.35, 1); }
+.fs-inner.flipped { transform: rotateY(180deg); }
+.fs-face { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+
+/* front: screenshot or cover gradient. Big info shows only on the focused item, the title only on hovered tiles */
+.fs-front { color: #fff; isolation: isolate; }
+.fs-vid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.6s, transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.fs-item.is-main .fs-vid.on { opacity: 1; }
+.fs-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.fs-item.is-main:hover .fs-img, .fs-item.is-main:hover .fs-vid { transform: scale(1.03); }
+.fs-item.is-main .fs-front { cursor: pointer; }
+.fs-item:not(.is-main):hover .fs-img { transform: scale(1.08); }
+.fs-shade { position: absolute; inset: 0; opacity: 0; transition: opacity 0.4s;
+  background: linear-gradient(to top, rgba(12, 16, 32, 0.85) 0%, rgba(12, 16, 32, 0.35) 38%, transparent 65%); }
+.fs-item.is-main .fs-shade, .fs-item:hover .fs-shade, .fs-item:focus-visible .fs-shade { opacity: 1; }
+.fs-info { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: flex-end; justify-content: space-between; gap: 1.2rem; padding: 1.6rem 1.8rem;
+  opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+.fs-item.is-main .fs-info { opacity: 1; pointer-events: auto; transition: opacity 0.4s 0.4s; }
+.fs-meta { display: flex; flex-direction: column; align-items: flex-start; gap: 0.6rem; min-width: 0; }
+.fs-info .fs-btn { flex-shrink: 0; white-space: nowrap; }
+.fs-info h2 { margin: 0; font: 800 2.2rem / 1.1 'Montserrat', sans-serif; color: #fff; }
+.fs-sub { margin: 0; font-size: 0.9rem; opacity: 0.8; }
+/* "Click for details" hint on the focused card */
+.fs-hint { position: absolute; top: 1.1rem; right: 1.2rem; z-index: 1; cursor: pointer; font: 600 0.75rem 'Inter', sans-serif; color: #fff;
+  padding: 0.45rem 0.9rem; border-radius: 99px; background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(6px); opacity: 0; pointer-events: none; transform: translateY(-0.3rem); transition: opacity 0.3s, transform 0.3s; }
+.fs-item.is-main:hover .fs-hint, .fs-item.is-main .fs-hint:focus-visible { opacity: 1; pointer-events: auto; transform: none; }
+@media (hover: none) { .fs-item.is-main .fs-hint { opacity: 0.9; pointer-events: auto; transform: none; } }
+.fs-ttl { position: absolute; left: 1rem; right: 1rem; bottom: 0.8rem; font: 700 0.95rem 'Montserrat', sans-serif; opacity: 0; transform: translateY(0.4rem); transition: opacity 0.3s, transform 0.3s; }
+.fs-item:not(.is-main):hover .fs-ttl, .fs-item:not(.is-main):focus-visible .fs-ttl { opacity: 1; transform: none; }
+.fs-tags { list-style: none; display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0; padding: 0; }
+.fs-tags li { font: 600 0.72rem 'Inter', sans-serif; padding: 0.3rem 0.7rem; border-radius: 99px; color: #fff;
+  background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(255, 255, 255, 0.22); backdrop-filter: blur(6px); }
+.fs-btn { display: inline-flex; align-items: center; gap: 0.4rem; border: 0; cursor: pointer; font: 600 0.88rem 'Inter', sans-serif; text-decoration: none;
+  padding: 0.7rem 1.3rem; border-radius: 99px; background: var(--accent); color: #fff; transition: transform 0.2s, filter 0.2s; }
+.fs-btn:hover { transform: translateY(-1px); filter: brightness(1.08); }
+.fs-btn.ghost { background: transparent; color: inherit; box-shadow: inset 0 0 0 1.5px color-mix(in srgb, currentColor 35%, transparent); }
+
+/* back: details text */
+.fs-back { transform: rotateY(180deg); display: flex; flex-direction: column; gap: 0.9rem; padding: 2rem 2.2rem; overflow: auto;
+  background: var(--card-light); color: var(--text); box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 10%, transparent);
+  transition: background 0.6s, color 0.6s; }
+:root.theme-dark .fs-back { background: var(--card-dark); color: #f1ece4; }
+.fs-item.is-main .fs-back { cursor: pointer; }
+.fs-back h2 { margin: 0; font: 800 1.7rem / 1.1 'Montserrat', sans-serif; color: inherit; }
+.fs-text p { margin: 0 0 0.7rem; font-size: 0.95rem; line-height: 1.65; opacity: 0.85; }
+.fs-back .fs-tags li { background: color-mix(in srgb, var(--accent) 12%, transparent); border-color: color-mix(in srgb, var(--accent) 30%, transparent); color: inherit; backdrop-filter: none; }
+.fs-actions { margin-top: auto; display: flex; flex-wrap: wrap; gap: 0.7rem; }
+
+/* tablet / phone: big panel on top, tiles in a row under it, titles always visible */
+@media (max-width: 900px) {
+  .fs { height: 38rem; }
+  .pos-0 { width: 100%; height: calc(100% - 9rem - var(--g)); }
+  .pos-1, .pos-2, .pos-3 { top: calc(100% - 9rem); height: 9rem; width: calc((100% - 2 * var(--g)) / 3); }
+  .pos-1 { left: 0; }
+  .pos-2 { left: calc((100% - 2 * var(--g)) / 3 + var(--g)); }
+  .pos-3 { left: calc(2 * ((100% - 2 * var(--g)) / 3 + var(--g))); }
+  .fs-item:not(.is-main) .fs-shade { opacity: 1; }
+  .fs-item:not(.is-main) .fs-ttl { opacity: 1; transform: none; font-size: 0.8rem; }
+  .fs-info { flex-wrap: wrap; }
+  .fs-info h2 { font-size: 1.6rem; }
+  .fs-back { padding: 1.4rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fs-item, .fs-inner, .fs-img, .fs-vid { transition: none; }
+}
+
+/* shared link style (the All Projects page now has its own styles in allprojects.css) */
+.link { color: var(--accent); font-weight: 600; font-size: 0.88rem; text-decoration: none; align-self: flex-start; }
+.link:hover { text-decoration: underline; }

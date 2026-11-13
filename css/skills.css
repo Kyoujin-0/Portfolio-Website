@@ -1,0 +1,48 @@
+/* Skills: home list + Skills page */
+/* skills numbered list (home card) */
+.numlist { list-style: none; flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }
+.numlist li { display: flex; align-items: center; gap: 0.65rem; font-size: 0.8rem; font-weight: 600; padding: 0.1rem 0; border-bottom: 1px solid color-mix(in srgb, currentColor 10%, transparent); }
+.numlist li:last-child { border-bottom: 0; }
+.numlist em { margin-left: auto; font-style: normal; font-weight: 500; font-size: 0.72rem; opacity: 0.45; }
+.ni { width: 1.5rem; height: 1.5rem; border-radius: 0.45rem; display: grid; place-items: center; background: color-mix(in srgb, #f26a1b 16%, transparent); color: var(--accent); flex-shrink: 0; }
+.ni svg { width: 0.85rem; height: 0.85rem; }
+.chips.big { margin-top: 1rem; }
+.chips.big li { font-size: 0.92rem; padding: 0.5rem 1rem; }
+
+/* ---------- tech stack (no cards: plain rows on the page) ---------- */
+.ts { margin: 0.4rem 0 1.8rem; }
+.ts-head { display: flex; align-items: baseline; gap: 0.9rem; margin-bottom: 0.4rem; }
+.ts-head h2 { font-size: 0.92rem; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; }
+.ts-head p { font-size: 0.82rem; opacity: 0.6; }
+.ts-row { display: grid; grid-template-columns: 12rem 1fr; gap: 1.5rem; align-items: center; padding: 1.15rem 0; border-top: 1px solid color-mix(in srgb, currentColor 16%, transparent); }
+.ts-row:last-child { border-bottom: 1px solid color-mix(in srgb, currentColor 16%, transparent); }
+.ts-label { display: flex; align-items: baseline; gap: 0.7rem; }
+.ts-label em { font-style: normal; font-weight: 600; font-size: 0.75rem; opacity: 0.4; }
+.ts-label h3 { font-family: 'Montserrat', sans-serif; font-size: 1.15rem; font-weight: 800; color: var(--accent); }
+.ts-items { list-style: none; display: flex; flex-wrap: wrap; gap: 0.7rem 1.6rem; }
+.ts-items li { display: inline-flex; align-items: center; gap: 0.55rem; font-size: 0.98rem; font-weight: 600; }
+.ts-ic { position: relative; width: 2rem; height: 2rem; border-radius: 0.55rem; display: grid; place-items: center; overflow: hidden; flex-shrink: 0;
+  background: color-mix(in srgb, #f26a1b 20%, transparent); color: var(--accent); font-size: 0.62rem; transition: transform 0.2s; }
+.ts-ic b { font-weight: 800; letter-spacing: 0.02em; }
+.ts-ic img { position: absolute; inset: 0.25rem; width: calc(100% - 0.5rem); height: calc(100% - 0.5rem); object-fit: contain; }
+.ts-ic.has { background: transparent !important; }
+.ts-ic.has b { display: none; }
+.ts-items li:hover .ts-ic { transform: translateY(-2px) rotate(-4deg); }
+
+/* ---------- skill cards ---------- */
+.sk-rows { list-style: none; margin-top: 0.4rem; }
+.sk-rows li { display: flex; align-items: center; gap: 0.8rem; padding: 0.7rem 0; font-size: 0.95rem; font-weight: 600; border-bottom: 1px solid color-mix(in srgb, currentColor 10%, transparent); transition: padding-left 0.2s; }
+.sk-rows li:last-child { border-bottom: 0; }
+.sk-rows li:hover { padding-left: 0.4rem; }
+.sk-rows .ni { width: 1.9rem; height: 1.9rem; border-radius: 0.55rem; }
+.sk-rows .ni svg { width: 1rem; height: 1rem; }
+.sk-rows em { margin-left: auto; font-style: normal; font-weight: 500; font-size: 0.78rem; opacity: 0.4; }
+.sk-dots { list-style: none; margin-top: 0.4rem; display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+.sk-dots li { display: flex; align-items: center; gap: 0.6rem; padding: 0.7rem 0.9rem; border-radius: 0.8rem; font-size: 0.9rem; font-weight: 600;
+  background: color-mix(in srgb, currentColor 5%, transparent); border: 1px solid color-mix(in srgb, currentColor 10%, transparent); }
+.sk-dots li::before { content: ""; width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+
+@media (max-width: 700px) {
+  .ts-row { grid-template-columns: 1fr; gap: 0.7rem; }
+  .sk-dots { grid-template-columns: 1fr; }
+}

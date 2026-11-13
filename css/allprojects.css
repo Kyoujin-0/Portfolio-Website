@@ -1,0 +1,46 @@
+/* All Projects page: card-tunnel intro + placeholder grid. Prefix: ap- */
+.ap-root { position: relative; }
+.ap-root.ap-playing { height: clamp(26rem, calc(100vh - 6.5rem), 70rem); overflow: hidden; }   /* the stage fills the window during the intro */
+
+/* ---- tunnel stage ---- */
+.ap-stage { position: absolute; inset: 0; z-index: 1; overflow: hidden; border-radius: 1.6rem; background: #0e0e11; cursor: pointer; user-select: none; -webkit-user-select: none; }
+.ap-root.ap-done .ap-stage { display: none; }
+/* never put opacity/filter/overflow on .ap-cam: that flattens the 3D */
+.ap-cam { position: absolute; inset: 0; transform-style: preserve-3d; transform-origin: 50% 50%; }
+.ap-tc { position: absolute; left: 50%; top: 50%; transform-origin: 0 0; border-radius: 0.9rem; overflow: hidden; opacity: 0;
+  background-color: #1c1815; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.09); backface-visibility: hidden; -webkit-backface-visibility: hidden; will-change: transform, opacity; }
+.ap-tc img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.ap-tc span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 1rem; text-align: center;
+  font: 800 1.4rem / 1.1 'Montserrat', sans-serif; color: #fff; text-shadow: 0 2px 14px rgba(0, 0, 0, 0.4); }
+.ap-tc::after { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(45deg, #0e0e11 0, #0e0e11 calc(var(--d, 0) * 150% - 25%), rgba(14, 14, 17, 0) calc(var(--d, 0) * 150% - 13%)); }
+.ap-tc img + span { display: none; }                       /* cards with a screenshot show only the image */
+
+/* the dark centre, and the darkness that crawls over each card (diagonal fill, bottom-left to top-right, driven by --d 0..1) */
+.ap-hole { position: absolute; left: 50%; top: 50%; width: 20%; height: 20%; border-radius: 50%; pointer-events: none; will-change: transform;
+  transform: translate(-50%, -50%); background: radial-gradient(closest-side, #0e0e11 62%, rgba(14, 14, 17, 0)); }
+.ap-label { position: absolute; top: 1.3rem; left: 1.6rem; color: #fff; opacity: 0.55; pointer-events: none;
+  font: 600 0.62rem 'Inter', sans-serif; letter-spacing: 0.32em; text-transform: uppercase; }
+.ap-count { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); text-align: center; color: #fff; pointer-events: none; opacity: 0; }
+.ap-count b { display: block; font: 200 clamp(2.4rem, 4vw, 4.4rem) / 1 'Montserrat', sans-serif; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
+.ap-count span { display: block; margin-top: 0.7rem; font: 600 0.62rem 'Inter', sans-serif; letter-spacing: 0.32em; text-transform: uppercase; opacity: 0.55; }
+
+/* ---- the page itself (placeholder grid; cards fly in from the centre) ---- */
+.ap-content { position: relative; z-index: 2; }
+/* hide the real page from the very first paint, before the script starts the intro. visibility on the container
+   (not just opacity on the cards) so the router's own card entrance animation can't make them show for a moment */
+.ap-root.ap-playing .ap-content { visibility: hidden; }
+.ap-root.ap-playing .ap-card, .ap-root.ap-playing .ap-head { opacity: 0; }
+.ap-back, .ap-replay { display: inline-block; margin-top: 0.55rem; color: var(--accent); font-weight: 600; font-size: 0.9rem; text-decoration: none; }
+.ap-back:hover, .ap-replay:hover { text-decoration: underline; }
+.ap-replay { margin-left: 1.2rem; padding: 0; border: 0; background: none; cursor: pointer; font-family: inherit; opacity: 0.75; }
+.ap-replay[hidden] { display: none; }
+.ap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr)); gap: 1.1rem; margin-top: 1rem; }
+.ap-card { display: flex; flex-direction: column; gap: 0.65rem; }
+.ap-card h3 { font-size: 1.05rem; }
+.ap-card h3 small { font: 400 0.75rem 'Inter', sans-serif; opacity: 0.6; }
+.ap-card p { font-size: 0.9rem; }
+.ap-card .chips { margin-top: auto; }
+.ap-link { color: var(--accent); font-weight: 600; font-size: 0.88rem; text-decoration: none; align-self: flex-start; }
+.ap-link:hover { text-decoration: underline; }
+.ap-shot { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 12px; background: color-mix(in srgb, currentColor 6%, transparent); }

@@ -1,0 +1,22 @@
+/* About: home stack card + About/Education page */
+/* about stack */
+.stack { position: relative; flex: 1; min-height: 0; display: grid; place-items: center; }
+.stack div {
+  position: absolute; width: 6.5rem; max-height: 100%; aspect-ratio: 3 / 4; border-radius: 0.9rem;
+  background: #ffd9bd; border: 2px solid var(--card-light); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12); transition: transform 0.4s;
+}
+.stack div:nth-child(1) { transform: rotate(-14deg) translateX(-2.1rem); background: #ffc59b; }
+.stack div:nth-child(2) { transform: rotate(-5deg) translateX(-0.75rem); background: #ffb37c; }
+.stack .front { transform: rotate(6deg) translateX(0.9rem); background: linear-gradient(135deg, #f26a1b, #ffb26b); color: #fff; overflow: hidden; display: grid; place-items: center; font: 800 1.5rem 'Montserrat', sans-serif; }
+.stack .front img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.card.dark .stack div { border-color: var(--card-dark); }
+.c-about:hover .stack div:nth-child(1) { transform: rotate(-20deg) translateX(-2.7rem); }
+.c-about:hover .stack .front { transform: rotate(9deg) translateX(1.25rem); }
+.body { margin-top: 0.9rem; font-size: 0.95rem; }
+.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1.1rem; padding-top: 1rem; border-top: 1px solid color-mix(in srgb, currentColor 14%, transparent); }
+.facts dt { font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase; opacity: 0.55; }
+.facts dd { font-weight: 600; font-size: 0.92rem; }
+.edu { list-style: none; display: grid; gap: 0.9rem; margin-top: 1rem; }
+.edu li { display: grid; grid-template-columns: 6.5rem 1fr auto; gap: 0.9rem; align-items: baseline; font-size: 0.92rem; }
+.edu small { display: block; font-size: 0.78rem; opacity: 0.6; }
+.edu em { font-style: normal; font-size: 0.82rem; opacity: 0.6; }

@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spiral Stream</title>
+<style>
+  :root { --bg: #0f0f13; --text: #f4f4f6; --rail-width: 100%; }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; background: var(--bg); color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+
+  .hero {
+    position: relative;
+    height: 100vh;
+    height: 100svh;
+    min-height: 420px;
+    overflow: hidden;
+    display: flex;
+    background: var(--bg);
+  }
+  /* The spiral fills this box and centres itself in it.
+     Make --rail-width smaller (e.g. 40vw) to leave room for content beside it. */
+  .rail {
+    position: relative;
+    flex: 0 0 var(--rail-width);
+    min-width: 0;
+    touch-action: pan-y;            /* sideways drags belong to the spiral, vertical scroll still works */
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .rail.pointing { cursor: pointer; }
+  .rail.dragging { cursor: grabbing; }
+  .rail.viewing  { cursor: default; }
+
+  .rail canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    pointer-events: none;
+  }
+  #stream { transition: filter .7s ease; }
+  #stream.blurred { filter: blur(14px) brightness(.45); }   /* the background while a card is open */
+
+  /* ---- card viewer: close button + description ---- */
+  .viewer { position: absolute; inset: 0; pointer-events: none; }
+
+  .close {
+    position: absolute;
+    top: max(16px, env(safe-area-inset-top));
+    right: 16px;
+    width: 44px; height: 44px;
+    display: grid; place-items: center;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,.18);
+    background: rgba(30,30,36,.55);
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    color: #fff;
+    cursor: pointer;
+    opacity: 0; transform: scale(.8);
+    pointer-events: none;
+    transition: opacity .3s ease, transform .3s ease, background .2s ease;
+  }
+  .close svg { width: 18px; height: 18px; }
+  .close:hover { background: rgba(70,70,82,.75); }
+  .close:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+  .caption {
+    position: absolute;
+    left: 50%;
+    bottom: clamp(20px, 5vh, 48px);
+    width: min(560px, calc(100% - 32px));
+    max-height: 30vh; overflow: auto;
+    padding: 18px 22px;
+    border-radius: 18px;
+    background: rgba(22,22,28,.55);
+    border: 1px solid rgba(255,255,255,.08);
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    opacity: 0; transform: translate(-50%, 16px);
+    pointer-events: none;
+    transition: opacity .45s ease, transform .45s ease;
+  }
+  .caption h2 { font-size: 1.15rem; font-weight: 650; letter-spacing: -.01em; }
+  .caption p  { margin-top: 6px; font-size: .95rem; line-height: 1.55; opacity: .78; }
+  .caption h2:empty, .caption p:empty { display: none; }
+  .caption h2:empty + p { margin-top: 0; }
+
+  .viewer.ui .close   { opacity: 1; transform: none; pointer-events: auto; }
+  .viewer.ui .caption { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+</style>
+</head>
+<body>
+
+<section class="hero" id="hero">
+  <div class="rail" id="rail">
+    <canvas id="stream" aria-hidden="true"></canvas>
+    <canvas id="focus" aria-hidden="true"></canvas>
+    <div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-labelledby="capTitle" aria-hidden="true">
+      <button class="close" id="close" type="button" aria-label="Close">
+        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l12 12M15 3L3 15"/></svg>
+      </button>
+      <div class="caption">
+        <h2 id="capTitle"></h2>
+        <p id="capText"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+(() => {
+'use strict';
+
+/* ===== YOUR IMAGES (leave empty for placeholder cards) =====
+   Each entry is either a plain path, or an object with a title and description that are
+   shown under the picture when the card is opened.                                        */
+const IMAGES = [
+  // "images/one.jpg",
+  // { src: "images/two.jpg", title: "Maple Street", description: "Shown under the picture when it opens." },
+  "projects/dd525c162a86b601b17aff83dbbca06d-4034700738289459973.jpg",
+  "projects/screenshot-2026-10-06-190005.png"
+];
+
+/* ===== TWEAKS =====
+   Everything is measured in "radii" (R = radius of the invisible cylinder), so the
+   whole thing scales together with the box it lives in.
+   One continuous ribbon of cards winds around the cylinder; the cylinder stays
+   still and the cards travel along the spiral. Each card is bent around the
+   cylinder and sheared to follow the slope of the spiral. */
+const CONFIG = {
+  perTurn: 6.5,        // cards per full turn (fewer = more space between cards)
+  pitch: 2.0,          // vertical rise per full turn  (bigger = more stretched spiral)
+  cardW: 0.85,         // card width measured along the curve
+  cardRatio: 0.96,     // card height ÷ width
+  cornerRadius: 0.12,  // corner radius ÷ card width
+  speed: 0.75,         // cards per second along the path (negative = other way)
+  introDuration: 1.7,  // seconds each card takes to wind in on page load
+  introStagger: 0.045, // seconds between one card starting and the next (0 = all at once)
+  introFlare: 0.6,     // how far out (in radii) cards swing while winding in from above/below
+  openDuration: 1.0,   // seconds for a clicked card to zoom to the centre (with its flip)
+  closeDuration: 0.85, // seconds for it to fly back to its place in the spiral
+  flip: false,          // flip the card while it flies in (false = plain zoom)
+  swing: 0.15,         // how far (as a fraction of the box width) a card swings out to the right before it zooms in (0 = straight line)
+  perspective: 5.6,    // camera distance (smaller = stronger perspective)
+  lookDown: 0,         // degrees to tip the camera down onto the spiral
+  dim: 0.55,           // how dark the cards on the far side get (0 = none, 1 = black)
+  radiusOfWidth: 0.285,   // spiral radius as a fraction of the box width…
+  radiusOfHeight: 0.275,  // …and of the box height (the smaller result wins)
+  centerX: 0.5,
+  centerY: 0.5,
+  bg: '#0f0f13'        // must match the page background (used to darken far cards)
+};
+
+const STRIPS = 36;          // how finely each card in the spiral is bent (more = smoother curve)
+const FOCUS_STRIPS = 120;   // the opened card is drawn alone, so it can be much finer (keeps its edges clean mid-flip)
+
+const rail     = document.getElementById('rail');
+const canvas   = document.getElementById('stream');
+const fcanvas  = document.getElementById('focus');
+const viewer   = document.getElementById('viewer');
+const closeBtn = document.getElementById('close');
+const capTitle = document.getElementById('capTitle');
+const capText  = document.getElementById('capText');
+const ctx      = canvas.getContext('2d');
+const fctx     = fcanvas.getContext('2d');
+const TAU      = Math.PI * 2;
+const mod      = (x, n = TAU) => ((x % n) + n) % n;
+const smooth   = (e0, e1, x) => {
+  const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0)));
+  return t * t * (3 - 2 * t);
+};
+const easeInOut = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if (reduced){ CONFIG.speed = 0; CONFIG.flip = false; CONFIG.openDuration *= 0.5; CONFIG.closeDuration *= 0.5; }
+
+/* ---------- state ---------- */
+let W = 0, H = 0, dpr = 1;
+let R = 0, cardArc = 0, cardH = 0, dyCard = 0, camD = 0, cx = 0, cy = 0, count = 0;
+let dTh = 0, sinP = 0, cosP = 1, riseRad = 0, slopeExt = 0, slotsPerPx = 0;
+let progress = 0, vel = 0, last = 0;                 // spiral position (in cards) and its speed
+let introT = 0, introTotal = 1;                      // page-load intro
+let introDelay = [], introSwirl = [], introFlare = [], introFollow = [], introShowAt = [];
+let mode = 'idle';                                   // idle | opening | open | closing
+let zoomP = 0, active = null;                        // the opened card and how far it has travelled (0..1)
+let focus = { x: 0, y: 0, z: 0, w: 400 };            // where the opened card ends up
+
+const introDone = () => introT >= introTotal;
+
+/* ---------- card content ---------- */
+const PALETTE = [
+  ['#e7e8df', '#cdd0c0', '#6b6f45'],
+  ['#737849', '#4f5430', '#e7e8df'],
+  ['#1f323a', '#0d171b', '#cfe0d2'],
+  ['#9eac8e', '#667859', '#f1f3e8'],
+  ['#dccdb0', '#b8a07a', '#4a3f2a'],
+  ['#3d4852', '#212930', '#dfe6e9'],
+  ['#4f5f3c', '#2c3822', '#e3e8cb'],
+  ['#cdd7d5', '#9db0ad', '#2c3b39']
+];
+const ITEMS = IMAGES.map(it => typeof it === 'string' ? { src: it } : it);
+const SOURCES = ITEMS.length || PALETTE.length;
+const PLACEHOLDER_TEXT = 'This is a placeholder description. Give each entry in IMAGES a title and a description at the top of the script and they will show up here.';
+const metaOf = k => ITEMS.length
+  ? { title: ITEMS[k].title || '', text: ITEMS[k].description || '' }
+  : { title: 'Card ' + String(k + 1).padStart(2, '0'), text: PLACEHOLDER_TEXT };
+
+const images = new Array(SOURCES).fill(null);        // loaded <img> or null
+let textures = [];                                   // one baked canvas per source
+let TW = 0, TH = 0, bakedFor = 0;
+
+function roundedRect(g, x, y, w, h, r){
+  r = Math.min(r, w / 2, h / 2);
+  g.beginPath();
+  g.moveTo(x + r, y);
+  g.arcTo(x + w, y, x + w, y + h, r);
+  g.arcTo(x + w, y + h, x, y + h, r);
+  g.arcTo(x, y + h, x, y, r);
+  g.arcTo(x, y, x + w, y, r);
+  g.closePath();
+}
+
+function makeTexture(w, h, paint, rad = CONFIG.cornerRadius * w){
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const g = c.getContext('2d');
+  g.imageSmoothingQuality = 'high';
+  g.save();
+  roundedRect(g, 0, 0, w, h, rad);
+  g.clip();
+  paint(g, w, h);
+  g.restore();
+  c.rad = rad;
+  return c;
+}
+
+function paintPlaceholder(g, w, h, k){
+  const [a, b, ink] = PALETTE[k % PALETTE.length];
+  const grad = g.createLinearGradient(0, 0, w, h);
+  grad.addColorStop(0, a); grad.addColorStop(1, b);
+  g.fillStyle = grad; g.fillRect(0, 0, w, h);
+  g.fillStyle = ink; g.strokeStyle = ink;
+  const u = Math.min(w, h);
+  g.globalAlpha = 0.9;
+  switch (k % 4){
+    case 0:
+      g.beginPath(); g.arc(w * .70, h * .64, u * .27, 0, TAU); g.fill();
+      g.globalAlpha = .35; g.beginPath(); g.arc(w * .46, h * .74, u * .17, 0, TAU); g.fill();
+      break;
+    case 1:
+      roundedRect(g, w * .34, h * .56, w * .56, h * .26, h * .13); g.fill();
+      g.globalAlpha = .35; roundedRect(g, w * .34, h * .56 - h * .1, w * .3, h * .07, h * .035); g.fill();
+      break;
+    case 2:
+      for (let i = 0; i < 4; i++){ g.globalAlpha = .25 + i * .2; g.fillRect(w * (.36 + i * .14), h * (.8 - i * .1), w * .1, h * (.1 + i * .1)); }
+      break;
+    default:
+      g.lineWidth = u * .07; g.beginPath(); g.arc(w * .68, h * .64, u * .22, 0, TAU); g.stroke();
+      g.globalAlpha = .35; g.beginPath(); g.arc(w * .68, h * .64, u * .08, 0, TAU); g.fill();
+  }
+  g.globalAlpha = 1;
+  g.textBaseline = 'top';
+  g.font = `700 ${u * .3}px system-ui, -apple-system, "Segoe UI", sans-serif`;
+  g.fillText(String(k + 1).padStart(2, '0'), w * .09, h * .06);
+  g.globalAlpha = .65;
+  g.font = `600 ${u * .06}px system-ui, -apple-system, "Segoe UI", sans-serif`;
+  g.fillText('SPIRAL STREAM', w * .09, h * .88);
+  g.globalAlpha = 1;
+}
+
+function paintImage(g, w, h, img){
+  const s = Math.max(w / img.naturalWidth, h / img.naturalHeight);
+  const dw = img.naturalWidth * s, dh = img.naturalHeight * s;
+  g.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
+}
+
+const paintFor = k => (g, w, h) => images[k] ? paintImage(g, w, h, images[k]) : paintPlaceholder(g, w, h, k);
+const bake    = k => { textures[k] = makeTexture(TW, TH, paintFor(k)); };
+const bakeAll = () => { for (let k = 0; k < SOURCES; k++) bake(k); };
+
+// a sharper copy of one card, used while it is zoomed in
+// (uncropped: it has the picture's own proportions, which is the shape the card grows into)
+function bakeHi(k){
+  const hw = Math.min(2048, Math.round(focus.w * dpr * 1.05));
+  if (hw <= TW * 1.1) return null;
+  const hh = Math.round(hw * focus.ar);
+  // gentle corners on the opened picture (a fixed share of its short side, so a wide photo is not turned into a pill)
+  return images[k] ? makeTexture(hw, hh, (g, w, h) => g.drawImage(images[k], 0, 0, w, h), 0.02 * Math.min(hw, hh))
+                   : makeTexture(hw, hh, paintFor(k));
+}
+
+ITEMS.forEach((it, k) => {
+  if (!it.src) return;
+  const img = new Image();
+  img.decoding = 'async';
+  img.onload = () => { images[k] = img; if (textures.length) bake(k); };
+  img.src = it.src;
+});
+
+/* ---------- layout ---------- */
+function layout(){
+  const rect = rail.getBoundingClientRect();
+  W = Math.max(1, rect.width);
+  H = Math.max(1, rect.height);
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const pw = Math.round(W * dpr), ph = Math.round(H * dpr);
+  for (const c of [canvas, fcanvas]) if (c.width !== pw || c.height !== ph){ c.width = pw; c.height = ph; }
+
+  const phi = CONFIG.lookDown * Math.PI / 180;
+  sinP = Math.sin(phi); cosP = Math.cos(phi);
+  R        = Math.min(W * CONFIG.radiusOfWidth, H * CONFIG.radiusOfHeight);
+  cardArc  = CONFIG.cardW * R;
+  cardH    = cardArc * CONFIG.cardRatio;
+  dTh      = TAU / CONFIG.perTurn;
+  dyCard   = CONFIG.pitch * R / CONFIG.perTurn;
+  riseRad  = CONFIG.pitch * R / TAU;
+  slopeExt = riseRad * CONFIG.cardW;
+  camD     = CONFIG.perspective * R;
+  cx       = W * CONFIG.centerX;
+  cy       = H * CONFIG.centerY;
+  slotsPerPx = 1 / (R * 1.15 * dTh);                 // dragging across the front moves the cards 1:1
+
+  // enough cards to cover the whole height plus a margin; cards wrap around off-screen
+  count = Math.ceil((H * 1.5 + cardH * 3) / dyCard);
+
+  const wantTW = Math.min(900, Math.max(64, Math.round(cardArc * dpr * 1.3)));
+  if (!textures.length || Math.abs(wantTW - bakedFor) / bakedFor > 0.12){
+    TW = wantTW; TH = Math.round(TW * CONFIG.cardRatio);
+    bakedFor = TW;
+    bakeAll();
+  }
+  computeFocus(typeof active !== "undefined" && active ? active.i % SOURCES : undefined);
+}
+
+// where an opened card ends up: flat, facing the camera, centred above the description
+// With a picture loaded, the card grows into the picture's own proportions and (at most) its original size.
+function computeFocus(k){
+  const img = k != null ? images[k] : null;
+  const ar = img ? img.naturalHeight / img.naturalWidth : CONFIG.cardRatio;
+  let w = Math.min(W * 0.86, H * 0.56 / ar);
+  w = img ? Math.min(w, Math.max(img.naturalWidth, cardArc * 1.2)) : Math.min(w, 760, cardArc * 4.4);
+  const scale = w / cardArc;
+  const z1 = camD * (1 - 1 / scale);
+  const y1 = (H * 0.42 - cy) / scale;
+  focus = { w, ar, x: (W * 0.5 - cx) / scale, y: y1 * cosP - z1 * sinP, z: z1 * cosP + y1 * sinP };
+}
+
+/* ---------- page-load intro ----------
+   Cards wind in along the spiral itself. Each on-screen card gets a start delay (middle of
+   the spiral first, then outward) and one of three entrances, never the same as the card
+   before it on the spiral:
+     from the top    - starts way up the helix and corkscrews DOWN into place
+     from the bottom - starts way down the helix and corkscrews UP into place (turning the other way)
+     from the left   - starts far out to the left on a wide orbit and spirals IN around the cylinder
+   While travelling, a card is placed at (angle - f*swirl, height - f*swirl*rise, radius*(1 + f*flare))
+   where f goes 1 -> 0, so it lands exactly on its slot. */
+function buildIntro(){
+  const cullM = cardH * 1.3 + slopeExt;
+
+  introDelay  = new Array(count).fill(-1e9);       // -1e9 = no intro, the card is simply drawn in place
+  introSwirl  = new Array(count).fill(0);
+  introFlare  = new Array(count).fill(0);
+  introFollow = new Array(count).fill(1);
+  introShowAt = new Array(count).fill(0);          // cards with no intro stay hidden until this time
+
+  // is card i (at spiral position p) actually on screen? `margin` = how far inside the edge it must be
+  const visibleAt = (i, p, margin) => {
+    const s  = (((i + p) % count) + count) % count;
+    const th = (s - count / 2) * dTh;
+    const Y  = (s - count / 2) * dyCard;
+    const Z  = R * Math.cos(th);
+    const sc = camD / (camD - (Z * cosP - Y * sinP));
+    const sy = cy + (Y * cosP + Z * sinP) * sc;
+    const ext = (cardH / 2 + slopeExt / 2) * sc;
+    return sy + ext > margin && sy - ext < H - margin;
+  };
+
+  let seed = 7, dir = 0;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const onScreen = [];
+  for (let i = 0; i < count; i++){
+    dir = (dir + 1 + (rnd() < 0.5 ? 0 : 1)) % 3;     // 0 top, 1 left, 2 bottom - differs from the previous card
+    const s  = (((i + progress) % count) + count) % count;
+    const th = (s - count / 2) * dTh;
+    const Y  = (s - count / 2) * dyCard;
+    if (!visibleAt(i, progress, -cullM)) continue;   // only cards near the screen get a look-in at all
+
+    if (dir === 0){                                  // top
+      const startY = -(cy + cardH * 1.8 + slopeExt) / 0.7;
+      const dY = Math.max(Y - startY, riseRad * TAU * 0.9);
+      introSwirl[i] = (dY / riseRad) * 1.1;          // positive = turns the way the spiral flows
+      introFlare[i] = CONFIG.introFlare;
+    } else if (dir === 2){                           // bottom
+      const startY = (H - cy + cardH * 1.8 + slopeExt) / 0.7;
+      const dY = Math.max(startY - Y, riseRad * TAU * 0.9);
+      introSwirl[i] = -(dY / riseRad) * 1.1;         // negative = turns against the flow
+      introFlare[i] = CONFIG.introFlare;
+    } else {                                         // left
+      const startAngle = -Math.PI / 2;               // far left edge of the cylinder
+      introSwirl[i]  = mod(th - startAngle) + TAU;   // one extra full turn for the swirl
+      introFlare[i]  = Math.max(0.8, (cx + cardArc * 1.8 + 40) / R - 1);
+      introFollow[i] = 0.3;                          // drifts down a little as it spirals in
+    }
+    onScreen.push({ i, d: Math.abs(s - count / 2) });
+  }
+  onScreen.sort((a, b) => a.d - b.d);
+  onScreen.forEach((c, rank) => { introDelay[c.i] = rank * CONFIG.introStagger; });
+  introTotal = onScreen.length * CONFIG.introStagger + CONFIG.introDuration;
+
+  // The spiral keeps turning while the intro plays, so work out where it will be when each card lands.
+  // A card that would land off-screen (the outermost ones at the top and bottom) skips the intro
+  // entirely: it stays hidden until then and the normal rotation brings it in or out.
+  const turned = T => CONFIG.speed * (T <= introTotal
+    ? introTotal * (Math.pow(T / introTotal, 3) - Math.pow(T / introTotal, 4) / 2)   // integral of the speed ramp
+    : introTotal / 2 + (T - introTotal));
+  onScreen.forEach(c => {
+    const lands = introDelay[c.i] + CONFIG.introDuration;
+    const at = t => progress + turned(t);
+    if (visibleAt(c.i, at(lands), cardH * 0.12)) return;          // lands properly on screen: keep its intro
+    for (let t = lands; t < introTotal + 3; t += 0.04){
+      if (!visibleAt(c.i, at(t), 0)){                             // lands off-screen: no intro, and keep it
+        introDelay[c.i] = -1e9;                                   // hidden until it is completely out of sight
+        introShowAt[c.i] = t;
+        return;
+      }
+    }
+    // (a card that only ever slides in from the edge keeps its intro)
+  });
+}
+
+/* ---------- drawing a card ----------
+   A card is a strip of the surface of a cylinder (radius 1/kappa) that faces the direction `psi`,
+   is centred on the point (Cx, Cy, Cz) and is sheared by `shear` (1 = follows the spiral, 0 = upright).
+   On the spiral: centre on the cylinder, psi = its angle, kappa = 1/R, shear = 1.
+   Opened: kappa -> 0 (flat), shear -> 0 (upright) and the centre moves in front of the camera. */
+const S1 = STRIPS + 1;
+const MAXS = Math.max(STRIPS, FOCUS_STRIPS) + 1;
+const xT = new Float64Array(MAXS), yT = new Float64Array(MAXS);
+const xB = new Float64Array(MAXS), yB = new Float64Array(MAXS);
+
+function fillStrips(Cx, Cy, Cz, psi, kappa, shear, n, hh = cardH){
+  const cp = Math.cos(psi), sp = Math.sin(psi);
+  const slopeW = riseRad / R;                        // height gained per unit of distance along the card
+  for (let k = 0; k <= n; k++){
+    const a = (k / n - 0.5) * cardArc;
+    let xl, zl;
+    if (kappa < 1e-6){ xl = a; zl = -0.5 * kappa * a * a; }
+    else { const al = kappa * a; xl = Math.sin(al) / kappa; zl = (Math.cos(al) - 1) / kappa; }
+    const X  = Cx + xl * cp + zl * sp;
+    const Z  = Cz - xl * sp + zl * cp;
+    const Yk = Cy + a * slopeW * shear;
+    for (let e = 0; e < 2; e++){
+      const Y  = Yk + (e ? hh / 2 : -hh / 2);
+      const y1 = Y * cosP + Z * sinP;
+      const z1 = Math.min(Z * cosP - Y * sinP, camD * 0.8);     // never lets a card fly through the camera
+      const sc = camD / (camD - z1);
+      const px = (cx + X * sc) * dpr, py = (cy + y1 * sc) * dpr;
+      if (e){ xB[k] = px; yB[k] = py; } else { xT[k] = px; yT[k] = py; }
+    }
+  }
+}
+
+function drawStrips(g, tex, n){
+  const tw = tex.width, th = tex.height, sw = tw / n;
+  for (let j = 0; j < n; j++){
+    const x0 = xT[j], y0 = yT[j];
+    const a  = (xT[j + 1] - x0) / sw;
+    const b  = (yT[j + 1] - y0) / sw;
+    const c  = ((xB[j] - x0) + (xB[j + 1] - xT[j + 1])) / (2 * th);
+    const d  = ((yB[j] - y0) + (yB[j + 1] - yT[j + 1])) / (2 * th);
+    const sx = j * sw;
+    // ~0.6 screen px of overlap on each side hides the seams between strips
+    const ov = Math.min(sw * 0.25, Math.max(0.5, 0.6 / Math.max(Math.hypot(a, b), 1e-3)));
+    const lp = j > 0 ? ov : 0;
+    const w  = Math.min(sw + ov, tw - sx);
+    g.setTransform(a, b, c, d, x0, y0);
+    g.drawImage(tex, sx - lp, 0, w + lp, th, -lp, 0, w + lp, th);
+  }
+  g.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+// maps a point of the flat card texture (tx, ty) to its position on screen
+function mapPoint(tx, ty, sw, th, n){
+  const f = tx / sw;
+  const k = Math.min(n - 1, Math.max(0, Math.floor(f)));
+  const r = f - k;
+  const tX = xT[k] + (xT[k + 1] - xT[k]) * r, tY = yT[k] + (yT[k + 1] - yT[k]) * r;
+  const bX = xB[k] + (xB[k + 1] - xB[k]) * r, bY = yB[k] + (yB[k + 1] - yB[k]) * r;
+  const v = ty / th;
+  return [tX + (bX - tX) * v, tY + (bY - tY) * v];
+}
+
+// darkens the card just drawn with ONE fill of its rounded outline (no seams between strips)
+function shadeCard(g, alpha, tex, n){
+  const tw = tex.width, th = tex.height, sw = tw / n;
+  const rho = Math.min(tex.rad, tw / 2, th / 2);
+  const steps = 8;
+  g.beginPath();
+  const p = mapPoint(rho, 0, sw, th, n);
+  g.moveTo(p[0], p[1]);
+  const lineTo = (x, y) => { const q = mapPoint(x, y, sw, th, n); g.lineTo(q[0], q[1]); };
+  for (let k = Math.ceil(rho / sw); k * sw < tw - rho; k++) lineTo(k * sw, 0);          // top
+  for (let i = 0; i <= steps; i++){ const a = -Math.PI / 2 + (i / steps) * Math.PI / 2;  // top-right
+    lineTo(tw - rho + rho * Math.cos(a), rho + rho * Math.sin(a)); }
+  for (let i = 0; i <= steps; i++){ const a = (i / steps) * Math.PI / 2;                 // bottom-right
+    lineTo(tw - rho + rho * Math.cos(a), th - rho + rho * Math.sin(a)); }
+  for (let k = Math.floor((tw - rho) / sw); k * sw > rho; k--) lineTo(k * sw, th);       // bottom
+  for (let i = 0; i <= steps; i++){ const a = Math.PI / 2 + (i / steps) * Math.PI / 2;  // bottom-left
+    lineTo(rho + rho * Math.cos(a), th - rho + rho * Math.sin(a)); }
+  for (let i = 0; i <= steps; i++){ const a = Math.PI + (i / steps) * Math.PI / 2;       // top-left
+    lineTo(rho + rho * Math.cos(a), rho + rho * Math.sin(a)); }
+  g.closePath();
+  g.globalCompositeOperation = 'source-atop';       // only darkens pixels the card already covers
+  g.globalAlpha = alpha;
+  g.fillStyle = CONFIG.bg;
+  g.fill();
+  g.globalCompositeOperation = 'source-over';
+  g.globalAlpha = 1;
+}
+
+/* ---------- hit testing: where was every card on screen the last time it was drawn ---------- */
+const hitBufs = [], hitIds = [];
+let hitCount = 0;
+const focusBuf = new Float32Array(4 * (FOCUS_STRIPS + 1));
+
+function saveQuads(buf, n){
+  const s = n + 1;
+  for (let k = 0; k < s; k++){
+    buf[k] = xT[k]; buf[s + k] = yT[k]; buf[2 * s + k] = xB[k]; buf[3 * s + k] = yB[k];
+  }
+}
+function inCard(buf, px, py, n){
+  const s = n + 1;
+  for (let j = 0; j < n; j++){
+    const x0 = buf[j],          y0 = buf[s + j];
+    const x1 = buf[j + 1],      y1 = buf[s + j + 1];
+    const x2 = buf[2 * s + j + 1], y2 = buf[3 * s + j + 1];
+    const x3 = buf[2 * s + j],     y3 = buf[3 * s + j];
+    const c0 = (x1 - x0) * (py - y0) - (y1 - y0) * (px - x0);
+    const c1 = (x2 - x1) * (py - y1) - (y2 - y1) * (px - x1);
+    const c2 = (x3 - x2) * (py - y2) - (y3 - y2) * (px - x2);
+    const c3 = (x0 - x3) * (py - y3) - (y0 - y3) * (px - x3);
+    if ((c0 >= 0 && c1 >= 0 && c2 >= 0 && c3 >= 0) || (c0 <= 0 && c1 <= 0 && c2 <= 0 && c3 <= 0)) return true;
+  }
+  return false;
+}
+function hitTest(px, py){                            // topmost card under the point, or -1
+  for (let n = hitCount - 1; n >= 0; n--) if (inCard(hitBufs[n], px, py, STRIPS)) return hitIds[n];
+  return -1;
+}
+
+/* ---------- rendering: the spiral ---------- */
+const visible = [];
+
+function renderStream(){
+  const cullM = cardH * 1.3 + slopeExt;
+
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'medium';
+
+  // 1. where is every card, and is it on screen?
+  visible.length = 0;
+  for (let i = 0; i < count; i++){
+    const s  = (((i + progress) % count) + count) % count;
+    const th = (s - count / 2) * dTh;
+    const Y  = (s - count / 2) * dyCard;
+    const Z  = R * Math.cos(th);
+    const y1 = Y * cosP + Z * sinP;
+    const z1 = Z * cosP - Y * sinP;
+    const sy = cy + y1 * camD / (camD - z1);
+    if (sy < -cullM || sy > H + cullM) continue;
+    if (active && i === active.i) continue;          // the opened card is drawn on the other canvas
+
+    // intro: until it lands, the card is displaced along the helix (see buildIntro)
+    let th0 = th, Y0 = Y, Rc = R;
+    if (introT < introShowAt[i]) continue;           // skipped card: hidden until the intro has passed it
+    const delay = introDelay[i];
+    if (delay !== undefined && delay > -1e8){
+      const x = Math.min(1, (introT - delay) / CONFIG.introDuration);
+      if (x <= 0) continue;                          // hasn't started yet, still off-screen
+      const f = Math.pow(1 - x, 3);                  // fast start, long soft landing
+      th0 = th - f * introSwirl[i];
+      Y0  = Y - f * introSwirl[i] * riseRad * introFollow[i];
+      Rc  = R * (1 + f * introFlare[i]);
+    }
+    visible.push({ i, th0, Y0, Rc, z: Rc * Math.cos(th0) * cosP - Y0 * sinP });
+  }
+  visible.sort((a, b) => a.z - b.z);                 // far side first
+
+  // 2. draw each card as a row of thin strips following the cylinder
+  hitCount = 0;
+  for (let n = 0; n < visible.length; n++){
+    const c = visible[n];
+    const tex = textures[c.i % SOURCES];
+    fillStrips(c.Rc * Math.sin(c.th0), c.Y0, c.Rc * Math.cos(c.th0), c.th0, 1 / c.Rc, 1, STRIPS);
+    drawStrips(ctx, tex, STRIPS);
+
+    const dim = CONFIG.dim * smooth(0.15, -0.85, Math.cos(c.th0));
+    if (dim > 0.004) shadeCard(ctx, dim, tex, STRIPS);
+
+    if (hitBufs.length <= hitCount) hitBufs.push(new Float32Array(4 * S1));
+    saveQuads(hitBufs[hitCount], STRIPS); hitIds[hitCount] = c.i; hitCount++;
+  }
+}
+
+/* ---------- rendering: the opened card ---------- */
+let focusDrawn = false;
+
+function renderFocus(){
+  if (!active){
+    if (focusDrawn){ fctx.setTransform(1, 0, 0, 1, 0, 0); fctx.clearRect(0, 0, fcanvas.width, fcanvas.height); focusDrawn = false; }
+    return;
+  }
+  fctx.setTransform(1, 0, 0, 1, 0, 0);
+  fctx.clearRect(0, 0, fcanvas.width, fcanvas.height);
+  fctx.imageSmoothingEnabled = true;
+  fctx.imageSmoothingQuality = 'high';
+
+  const e  = easeInOut(zoomP);                       // sliding to the centre, flattening, un-shearing
+  const ez = easeInOut(smooth(0.25, 1, zoomP));      // coming towards the camera (the zoom) starts a little later
+  const es = smooth(0.2, 0.8, zoomP);                // the flip, in the middle of the flight
+  const swing = Math.sin(Math.PI * Math.pow(zoomP, 0.6));   // 0 -> 1 -> 0: out to the right early, back to centre by the end
+
+  // where the card sits in the spiral right now (the spiral is slowing to a stop while it is open)
+  const s  = (((active.i + progress) % count) + count) % count;
+  const th = (s - count / 2) * dTh;
+  const Hx = R * Math.sin(th), Hy = (s - count / 2) * dyCard, Hz = R * Math.cos(th);
+
+  let Cx = Hx + (focus.x - Hx) * e;
+  const Cy = Hy + (focus.y - Hy) * e;
+  const Cz = Hz + (focus.z - Hz) * ez;
+  const scNow  = camD / (camD - Cz);                 // how much the card is magnified right now
+  const room   = Math.max(0, W * 0.9 - (cx + Cx * scNow));   // never swing off the right edge of the screen
+  Cx += Math.min(CONFIG.swing * W, room) * swing / scNow;
+
+  fillStrips(Cx, Cy, Cz, th + (active.yawTarget - th) * es, (1 - e) / R, 1 - e, FOCUS_STRIPS,
+             cardH + (cardArc * focus.ar - cardH) * e);          // the card's shape melts into the picture's own
+
+  let tex = textures[active.i % SOURCES];
+  const mix = active.hi ? smooth(0.35, 0.65, zoomP) : 0;       // card crop -> the full picture, while it is edge-on
+  if (mix > 0){
+    if (mix < 1) drawStrips(fctx, tex, FOCUS_STRIPS);
+    tex = active.hi;
+    fctx.globalAlpha = mix;
+  }
+  drawStrips(fctx, tex, FOCUS_STRIPS);
+  fctx.globalAlpha = 1;
+  const dim = CONFIG.dim * smooth(0.15, -0.85, Math.cos(th)) * (1 - smooth(0, 0.5, zoomP));
+  if (dim > 0.004) shadeCard(fctx, dim, tex, FOCUS_STRIPS);
+
+  saveQuads(focusBuf, FOCUS_STRIPS);
+  focusDrawn = true;
+}
+
+/* ---------- opening and closing a card ---------- */
+function openCard(i){
+  if (mode !== 'idle' || !introDone()) return;
+  const k = i % SOURCES;
+  computeFocus(k);
+  const s  = (((i + progress) % count) + count) % count;
+  const th = (s - count / 2) * dTh;
+  // One flip, never more: turn between half and one full turn (whichever way is shorter) until the card faces us.
+  // A card on the far side only needs half a turn; a card already facing us does one full flip.
+  const mm = mod(th);
+  let d;
+  if (CONFIG.flip) d = (TAU - mm >= Math.PI) ? TAU - mm : -mm;
+  else d = mm > Math.PI ? TAU - mm : -mm;
+  active = { i, yawTarget: th + d, hi: bakeHi(k) };
+
+  const m = metaOf(k);
+  capTitle.textContent = m.title;
+  capText.textContent  = m.text;
+  viewer.setAttribute('aria-hidden', 'false');
+  rail.classList.add('viewing'); rail.classList.remove('pointing');
+  canvas.classList.add('blurred');
+  mode = 'opening'; zoomP = 0;
+}
+
+function closeCard(){
+  if (mode !== 'opening' && mode !== 'open') return;
+  mode = 'closing';
+  viewer.classList.remove('ui');
+  canvas.classList.remove('blurred');
+}
+
+function advanceViewer(dt){
+  if (mode === 'opening'){
+    zoomP = Math.min(1, zoomP + dt / CONFIG.openDuration);
+    if (zoomP > 0.62) viewer.classList.add('ui');
+    if (zoomP >= 1){ mode = 'open'; closeBtn.focus({ preventScroll: true }); }
+  } else if (mode === 'closing'){
+    zoomP = Math.max(0, zoomP - dt / CONFIG.closeDuration);
+    if (zoomP <= 0){                                 // landed back in its slot
+      mode = 'idle'; active = null;
+      viewer.setAttribute('aria-hidden', 'true');
+      rail.classList.remove('viewing');
+    }
+  }
+}
+
+closeBtn.addEventListener('click', closeCard);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCard(); });
+
+/* ---------- dragging and clicking ---------- */
+let pressed = false, dragging = false, startX = 0, startY = 0, lastX = 0, lastMoveT = 0;
+
+const toDevice = e => {
+  const r = rail.getBoundingClientRect();
+  return [(e.clientX - r.left) * (canvas.width / r.width), (e.clientY - r.top) * (canvas.height / r.height)];
+};
+
+rail.addEventListener('pointerdown', e => {
+  if (e.button !== undefined && e.button !== 0) return;
+  if (e.target.closest('.close, .caption')) return;
+  if (mode !== 'idle'){                              // a card is open: clicking outside it closes it
+    const [px, py] = toDevice(e);
+    if (!inCard(focusBuf, px, py, FOCUS_STRIPS)) closeCard();
+    return;
+  }
+  if (!introDone()) return;                          // no dragging or clicking until the intro has finished
+  pressed = true; dragging = false;
+  startX = lastX = e.clientX; startY = e.clientY; lastMoveT = performance.now();
+  try { rail.setPointerCapture(e.pointerId); } catch (_) {}
+});
+
+rail.addEventListener('pointermove', e => {
+  if (pressed){
+    if (!dragging && Math.hypot(e.clientX - startX, e.clientY - startY) > 6){
+      dragging = true; rail.classList.add('dragging'); rail.classList.remove('pointing');
+    }
+    if (dragging){
+      const now = performance.now();
+      const ds = (e.clientX - lastX) * slotsPerPx;   // drag right = the way the spiral naturally flows
+      progress += ds;
+      vel = vel * 0.6 + (ds / Math.max(0.001, (now - lastMoveT) / 1000)) * 0.4;   // smoothed speed for the flick
+      lastX = e.clientX; lastMoveT = now;
+    }
+  } else if (mode === 'idle' && introDone()){
+    const [px, py] = toDevice(e);
+    rail.classList.toggle('pointing', hitTest(px, py) >= 0);
+  }
+});
+
+function endPress(e, cancelled){
+  if (!pressed) return;
+  pressed = false;
+  rail.classList.remove('dragging');
+  if (dragging){
+    dragging = false;
+    if (performance.now() - lastMoveT > 90) vel = 0;               // stopped before letting go: no flick
+    vel = Math.max(-9, Math.min(9, vel));                          // the spiral coasts on, then settles back to its own pace
+    return;
+  }
+  if (cancelled) return;
+  const [px, py] = toDevice(e);
+  const i = hitTest(px, py);
+  if (i >= 0) openCard(i);
+}
+rail.addEventListener('pointerup', e => endPress(e, false));
+rail.addEventListener('pointercancel', e => endPress(e, true));
+rail.addEventListener('pointerleave', () => { if (!pressed) rail.classList.remove('pointing'); });
+
+/* ---------- loop ---------- */
+function frame(now){
+  const dt = last ? Math.min(0.05, (now - last) / 1000) : 0;   // clamp so a hidden tab can't cause a jump
+  last = now;
+  introT += dt;
+
+  // how fast the spiral turns: follows the intro ramp, then coasts/eases; stops while a card is open
+  const target = mode === 'idle' ? CONFIG.speed * smooth(0, introTotal, introT) : 0;
+  if (!introDone()){ vel = target; progress += vel * dt; }
+  else if (!dragging){
+    vel += (target - vel) * (1 - Math.exp(-dt / (mode === 'idle' ? 0.7 : 0.25)));
+    progress += vel * dt;
+  }
+
+  advanceViewer(dt);
+  if (!(mode === 'open' && !dragging && Math.abs(vel) < 0.001)) renderStream();   // nothing moves behind an open card
+  renderFocus();
+  requestAnimationFrame(frame);
+}
+
+/* ---------- start ---------- */
+const params = new URLSearchParams(location.search);
+if (params.has('p')) progress = parseFloat(params.get('p')) || 0;
+const still = params.has('still');
+
+layout();
+buildIntro();
+introT = (still || reduced) ? 1e9 : 0;               // no intro for reduced-motion users
+if (params.has('t')) introT = parseFloat(params.get('t')) || 0;
+renderStream();
+if (!still) requestAnimationFrame(frame);
+
+const onResize = () => { layout(); renderStream(); renderFocus(); };
+if ('ResizeObserver' in window) new ResizeObserver(onResize).observe(rail);
+else window.addEventListener('resize', onResize);
+
+// handy for tweaking from the console: spiral.CONFIG.speed = 1.2; spiral.rebuild()
+window.spiral = {
+  CONFIG,
+  rebuild(){ bakedFor = 0; layout(); renderStream(); },
+  seek(p){ progress = p; renderStream(); },
+  seekIntro(t){ introT = t; renderStream(); },
+  replayIntro(){ if (mode === 'idle'){ buildIntro(); introT = 0; } },
+  open(i){ openCard(i); },
+  close(){ closeCard(); },
+  state(){ return { mode, progress, vel, zoomP, introDone: introDone(), hits: hitCount }; }
+};
+})();
+</script>
+</body>
+</html>

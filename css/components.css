@@ -1,0 +1,53 @@
+/* Shared pieces: buttons, cards, chips, gallery tiles, two-column grid */
+.btn {
+  display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.25rem; border-radius: 999px;
+  font-weight: 600; font-size: 0.88rem; text-decoration: none; border: 1.5px solid var(--btn-dark);
+  transition: transform 0.2s, box-shadow 0.2s, background 0.6s, border-color 0.6s, color 0.6s;
+}
+.btn svg { width: 1rem; height: 1rem; }
+.btn.dark { background: var(--btn-dark); color: #fff; }
+.btn.ghost { background: transparent; color: var(--text); border-color: var(--line); }
+.btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); }
+/* ---------- CARDS (filled with darkness one by one) ---------- */
+.card {
+  position: relative; isolation: isolate; overflow: hidden;
+  background: var(--card-light); color: #1a2340;
+  border: 1px solid rgba(26, 35, 64, 0.08); border-radius: var(--radius);
+  padding: 1.5rem; box-shadow: 0 8px 30px rgba(26, 35, 64, 0.06);
+  transition: color 0.5s ease 0.3s, border-color 0.8s, transform 0.25s, box-shadow 0.25s;
+}
+.card::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; background: var(--card-dark);
+  clip-path: circle(0% at 0 100%);
+  transition: clip-path 1s cubic-bezier(0.65, 0, 0.35, 1);
+}
+.card.dark { color: #f1ece4; border-color: rgba(255, 255, 255, 0.08); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4); }
+.card.dark::before { clip-path: circle(150% at 0 100%); }
+.card:hover { transform: translateY(-3px); }
+.card.in { animation: rise 0.6s ease backwards; }
+@keyframes rise { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+
+.card-head { display: flex; align-items: center; gap: 0.75rem; }
+.badge { width: 2.1rem; height: 2.1rem; border-radius: 0.65rem; background: var(--accent); color: #fff; display: grid; place-items: center; flex-shrink: 0; }
+.badge svg { width: 1.1rem; height: 1.1rem; }
+.card-head h2 { font-size: 0.92rem; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; }
+.sub { margin: 0.6rem 0 0.7rem; font-size: 0.82rem; opacity: 0.65; }
+.card p { opacity: 0.88; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr)); gap: 1.1rem; }
+.chips { list-style: none; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.chips li { padding: 0.3rem 0.8rem; border-radius: 999px; font-size: 0.85rem; background: color-mix(in srgb, currentColor 8%, transparent); border: 1px solid color-mix(in srgb, currentColor 12%, transparent); }
+.chips.small li { font-size: 0.72rem; padding: 0.12rem 0.65rem; }
+.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr)); gap: 0.9rem; margin-top: 1rem; }
+.tile {
+  position: relative; aspect-ratio: 4 / 3; border-radius: 0.9rem; overflow: hidden; display: grid; place-items: center;
+  border: 1.5px dashed color-mix(in srgb, currentColor 22%, transparent); background: color-mix(in srgb, currentColor 4%, transparent);
+}
+.tile b { font-size: 0.8rem; font-weight: 600; opacity: 0.5; }
+.tile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.tile.has-img { border-style: solid; border-color: transparent; }
+.tile.has-img b { display: none; }
+.empty { opacity: 0.6; font-size: 0.9rem; margin-top: 14px; }
+.hc .empty { margin-top: 4px; }
+.tile figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 12px 10px; background: linear-gradient(transparent, rgba(0, 0, 0, 0.72)); color: #fff; font-size: 0.8rem; font-weight: 600; display: none; }
+.tile.has-img figcaption { display: block; }
+.tile figcaption small { display: block; font-weight: 400; opacity: 0.8; font-size: 0.7rem; }

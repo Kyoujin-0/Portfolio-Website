@@ -1,0 +1,74 @@
+/* Designs: home card + page extras */
+/* designs */
+.duo { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; }
+.duo-tile {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.4rem; border-radius: 0.9rem;
+  border: 1px solid color-mix(in srgb, currentColor 13%, transparent); background: color-mix(in srgb, currentColor 3%, transparent);
+  transition: transform 0.25s; min-height: 0; overflow: hidden;
+}
+.duo-tile b { font: 800 1.5rem 'Montserrat', sans-serif; }
+.hc:hover .duo-tile { transform: translateY(-2px); }
+.duo-tile small { font-size: 0.72rem; opacity: 0.6; }
+
+/* ---------- gallery tiles that open the viewer ---------- */
+.tile[data-kind] { cursor: pointer; transition: transform 0.25s, border-color 0.25s; }
+.tile[data-kind]:hover { transform: translateY(-2px); }
+.tile[data-kind] img { transition: transform 0.5s; }
+.tile[data-kind]:hover img { transform: scale(1.05); }
+.tile[data-kind]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tile[data-kind="2d"] { cursor: zoom-in; }
+.t-badge { position: absolute; top: 0.55rem; right: 0.55rem; z-index: 2; display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.55rem;
+  border-radius: 999px; background: var(--accent); color: #fff; font: 800 0.66rem 'Montserrat', sans-serif; letter-spacing: 0.08em; }
+.t-badge svg { width: 0.8rem; height: 0.8rem; }
+
+/* ---------- full-screen viewer (2D image / live 3D) ---------- */
+.dv { position: fixed; inset: 0; z-index: 1000; display: flex; flex-direction: column; align-items: center; padding: 3.5rem 4.5rem 1.2rem;
+  background: rgba(12, 9, 7, 0.88); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); color: #f1ece4;
+  opacity: 0; transition: opacity 0.25s; }
+.dv.on { opacity: 1; }
+.dv[hidden], .dv [hidden] { display: none !important; }
+.dv-stage { position: relative; width: 100%; flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; }
+.dv-img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 0.8rem; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55); animation: dvIn 0.35s ease; }
+@keyframes dvIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: none; } }
+.dv-msg { opacity: 0.75; font-size: 0.95rem; text-align: center; }
+.dv-x, .dv-nav { position: absolute; z-index: 3; display: grid; place-items: center; border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 50%; cursor: pointer;
+  background: rgba(255, 255, 255, 0.08); color: #fff; font-family: 'Inter', sans-serif; transition: background 0.2s, transform 0.2s; }
+.dv-x:hover, .dv-nav:hover { background: var(--accent); border-color: var(--accent); }
+.dv-x:focus-visible, .dv-nav:focus-visible, .dv-tools button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.dv-x { top: 1rem; right: 1rem; width: 2.6rem; height: 2.6rem; font-size: 1.6rem; line-height: 1; }
+.dv-nav { top: 50%; width: 3rem; height: 3rem; margin-top: -1.5rem; font-size: 2rem; line-height: 1; padding-bottom: 0.2rem; }
+.dv-prev { left: 1rem; }
+.dv-next { right: 1rem; }
+.dv-bar { flex-shrink: 0; margin-top: 0.7rem; display: flex; justify-content: center; align-items: baseline; gap: 0.8rem; pointer-events: none; }
+.dv-bar b { font: 700 1rem 'Montserrat', sans-serif; }
+.dv-bar span { font-size: 0.8rem; opacity: 0.55; }
+.dv-tools { flex-shrink: 0; margin-top: 0.9rem; display: flex; justify-content: center; align-items: center; gap: 0.6rem; z-index: 3; }
+.dv-tools button { padding: 0.4rem 0.95rem; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.2); background: rgba(255, 255, 255, 0.08); color: #fff; font: 600 0.78rem 'Inter', sans-serif; cursor: pointer; transition: background 0.2s; }
+.dv-tools button:hover, .dv-tools button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); }
+.dv-tools span { font-size: 0.74rem; opacity: 0.5; }
+/* 3D panel: light or dark to match the site theme */
+.dv-3d { position: relative; width: 100%; height: 100%; border-radius: 1rem; overflow: hidden; touch-action: none;
+  background: radial-gradient(circle at 50% 40%, #fffdfa, #e9e3d9); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55); animation: dvIn 0.35s ease; }
+:root.theme-dark .dv-3d { background: radial-gradient(circle at 50% 40%, #2b2420, #14100d); }
+.dv-3d canvas { display: block; cursor: grab; }
+.dv-3d canvas:active { cursor: grabbing; }
+.dv-load { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.8rem; color: #1a2340; font-size: 0.9rem; pointer-events: none; }
+:root.theme-dark .dv-load { color: #f1ece4; }
+.dv-load i { width: 11rem; height: 0.3rem; border-radius: 999px; background: color-mix(in srgb, currentColor 18%, transparent); overflow: hidden; }
+.dv-load u { display: block; width: 8%; height: 100%; background: var(--accent); text-decoration: none; transition: width 0.2s; }
+/* camera-height slider (3D viewer) */
+.dv-h { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); height: 55%; max-height: 22rem; z-index: 2;
+  display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 0.7rem 0.35rem; border-radius: 999px;
+  background: rgba(26, 35, 64, 0.08); color: #1a2340; }
+:root.theme-dark .dv-h { background: rgba(255, 255, 255, 0.08); color: #f1ece4; }
+.dv-h span { font-size: 0.6rem; opacity: 0.55; line-height: 1; }
+.dv-h input { flex: 1; min-height: 0; width: 1.4rem; margin: 0; writing-mode: vertical-lr; direction: rtl; accent-color: var(--accent); cursor: grab; touch-action: none; }
+.dv-h input:active { cursor: grabbing; }
+@supports not (writing-mode: vertical-lr) { .dv-h input { -webkit-appearance: slider-vertical; height: 100%; } }
+@media (max-width: 700px) {
+  .dv { padding: 3.5rem 0.8rem 0.9rem; }
+  .dv-bar { min-height: 2.6rem; align-items: center; }
+  .dv-nav { top: auto; bottom: 0.9rem; margin-top: 0; width: 2.6rem; height: 2.6rem; }
+  .dv-tools span { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .dv, .dv-img, .dv-3d { animation: none; transition: none; } }

@@ -1,0 +1,49 @@
+/* Base: root size, colors, reset, dark-mode overlay */
+/* Everything is sized in rem, and the root font size follows the window,
+   so the whole layout scales to fit the screen (no page scrolling on desktop). */
+html { font-size: clamp(10px, min(1.9vh, 1.1vw), 17px); }
+:root {
+  --page: #f6f3ee;
+  --text: #1a2340;
+  --muted: #6b6f7b;
+  --accent: #f26a1b;
+  --pill: #ffffff;
+  --line: rgba(26, 35, 64, 0.12);
+  --nav-bg: rgba(246, 243, 238, 0.92);
+  --card-light: #fffdfa;
+  --card-dark: #1c1815;
+  --btn-dark: #0f1a3a;
+  --radius: 1.4rem;
+}
+
+:root.theme-dark {
+  --text: #f1ece4;
+  --muted: #a39d93;
+  --pill: #241f1b;
+  --line: rgba(255, 255, 255, 0.12);
+  --nav-bg: rgba(16, 13, 11, 0.92);
+  --btn-dark: #f26a1b;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { background: var(--page); }
+html, body { overflow-x: hidden; }
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--text);
+  line-height: 1.5;
+  transition: color 0.6s ease 0.2s;
+}
+svg { width: 1.1em; height: 1.1em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+h1, h2, h3 { font-family: 'Montserrat', sans-serif; }
+button { font: inherit; }
+/* Darkness that engulfs the page from bottom-left to top-right */
+body::before {
+  content: "";
+  position: fixed; inset: 0; z-index: -1;
+  background: #100d0b;
+  clip-path: circle(0% at 0 100%);
+  transition: clip-path 1.8s cubic-bezier(0.65, 0, 0.35, 1);
+}
+:root.theme-dark body::before { clip-path: circle(150% at 0 100%); }
+/* No animation on first paint when dark was saved */
+.no-anim *, .no-anim *::before { transition: none !important; }

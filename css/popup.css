@@ -1,0 +1,59 @@
+/* Popup overview (js/popup.js). Prefix: ov-. Link this BEFORE responsive.css. */
+.ov { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 1.5rem; visibility: hidden; pointer-events: none; transition: visibility 0s linear 0.3s; }
+.ov.open { visibility: visible; pointer-events: auto; transition-delay: 0s; }
+.ov-back { position: absolute; inset: 0; background: rgba(15, 26, 58, 0.45); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); opacity: 0; transition: opacity 0.3s ease; }
+.ov.open .ov-back { opacity: 1; }
+
+.ov-panel {
+  position: relative; width: min(40rem, 100%); max-height: min(46rem, 88vh); display: flex; flex-direction: column;
+  background: var(--card-light); color: #1a2340; border: 1px solid rgba(26, 35, 64, 0.08);
+  border-radius: var(--radius); box-shadow: 0 24px 70px rgba(15, 26, 58, 0.35);
+  opacity: 0; transform: translateY(16px) scale(0.98);
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.5s, color 0.5s;
+}
+.ov.open .ov-panel { opacity: 1; transform: none; }
+:root.theme-dark .ov-panel { background: var(--card-dark); color: #f1ece4; border-color: rgba(255, 255, 255, 0.08); }
+:root.calm .ov-panel, :root.calm .ov-back { transition: none; }
+
+.ov-head { display: flex; align-items: center; gap: 0.75rem; padding: 1.3rem 1.5rem 0.9rem; }
+.ov-head h2 { flex: 1; font-size: 0.92rem; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; }
+.ov-x { width: 2.2rem; height: 2.2rem; border-radius: 50%; border: 1px solid color-mix(in srgb, currentColor 15%, transparent); background: transparent; color: inherit; font-size: 1.3rem; line-height: 1; cursor: pointer; transition: background 0.2s, transform 0.2s; }
+.ov-x:hover { background: color-mix(in srgb, currentColor 8%, transparent); transform: rotate(90deg); }
+.ov-x:focus-visible, .ov-go:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.ov-body { padding: 0 1.5rem 1rem; overflow-y: auto; min-height: 0; font-size: 0.9rem; line-height: 1.55; }
+.ov-foot { padding: 0.9rem 1.5rem 1.3rem; border-top: 1px solid color-mix(in srgb, currentColor 10%, transparent); display: flex; justify-content: flex-end; }
+:root.theme-dark .ov-go.btn.dark { background: var(--accent); border-color: var(--accent); }
+
+.ov-lead { opacity: 0.7; margin-bottom: 0.8rem; }
+.ov-sub { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0.9rem 0 0.5rem; }
+.ov-sub:first-child { margin-top: 0; }
+.ov-clamp { display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 0.9rem; }
+.ov-facts { list-style: none; display: flex; flex-wrap: wrap; gap: 0.4rem 1.2rem; opacity: 0.85; }
+.ov-facts b { color: var(--accent); font-weight: 700; margin-right: 0.25rem; }
+
+.ov-list { list-style: none; display: grid; gap: 0.8rem; }
+.ov-row { padding: 0.8rem 1rem; border-radius: 0.9rem; background: color-mix(in srgb, currentColor 5%, transparent); }
+.ov-row b, .ov-pbody b { display: block; font-weight: 700; }
+.ov-row small, .ov-pbody small { display: block; opacity: 0.65; font-size: 0.78rem; }
+.ov-bul { margin: 0.4rem 0 0 1.1rem; opacity: 0.85; }
+
+.ov-proj { display: flex; gap: 0.9rem; padding: 0.7rem; border-radius: 0.9rem; background: color-mix(in srgb, currentColor 5%, transparent); }
+.ov-thumb { position: relative; flex: 0 0 6.5rem; height: 5rem; border-radius: 0.7rem; overflow: hidden; background: linear-gradient(135deg, var(--c, var(--accent)), var(--btn-dark)); }
+.ov-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ov-pbody { min-width: 0; }
+.ov-pbody p { margin: 0.25rem 0 0.4rem; font-size: 0.82rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ov-link { display: inline-block; margin-top: 0.4rem; font-size: 0.8rem; font-weight: 600; color: var(--accent); text-decoration: none; }
+.ov-link:hover { text-decoration: underline; }
+
+.ov-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.7rem; }
+.ov-shot { position: relative; aspect-ratio: 4 / 3; border-radius: 0.8rem; overflow: hidden; background: color-mix(in srgb, currentColor 6%, transparent); }
+.ov-shot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+/* phones / small windows: bottom sheet */
+@media (max-width: 900px) {
+  .ov { place-items: end center; padding: 0; }
+  .ov-panel { width: 100%; max-height: 86vh; border-radius: var(--radius) var(--radius) 0 0; transform: translateY(100%); }
+  .ov-proj { flex-direction: column; }
+  .ov-thumb { flex-basis: auto; width: 100%; height: 7rem; }
+}

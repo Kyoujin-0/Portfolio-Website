@@ -1,0 +1,34 @@
+/* Home screen: tools strip and the bento grid placement */
+/* TOOLS STRIP */
+.tools { display: flex; align-items: center; gap: 1.5rem; padding: 0.6rem 1.4rem; margin-bottom: 1.1rem; flex-shrink: 0; }
+.tools:hover { transform: none; }
+.tools-label { display: flex; flex-direction: column; flex-shrink: 0; padding-right: 1.4rem; border-right: 1px solid color-mix(in srgb, currentColor 15%, transparent); }
+.tools-label small { color: var(--accent); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; }
+.tools-label b { font-family: 'Montserrat', sans-serif; font-size: 0.95rem; }
+.marquee { overflow: hidden; flex: 1; min-width: 0; mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
+.marquee ul { display: flex; width: max-content; list-style: none; animation: scroll 32s linear infinite; }
+.marquee li { font-weight: 600; font-size: 0.9rem; white-space: nowrap; display: flex; align-items: center; gap: 0.6rem; padding-right: 4.8rem; }
+@keyframes scroll { to { transform: translateX(-50%); } }
+.ico {
+  position: relative; width: 1.75rem; height: 1.75rem; border-radius: 0.5rem; flex-shrink: 0;
+  background: var(--c, #888); color: var(--t, #fff);
+  display: grid; place-items: center; font: 800 0.68rem 'Montserrat', sans-serif; letter-spacing: 0.3px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+.ico img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.ico.has-img { background: transparent; border-color: transparent; }
+.ico.has-img b { display: none; }
+/* ---------- HOME BENTO (fills whatever space is left) ---------- */
+.bento {
+  flex: 1; min-height: 0; display: grid; gap: 1rem;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+}
+.hc { padding: 1.2rem 1.3rem; display: flex; flex-direction: column; min-height: 0; cursor: pointer; }
+.hc:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.c-projects { grid-column: span 6; flex-direction: row; gap: 1.2rem; }
+.c-about { grid-column: span 3; }
+.c-designs { grid-column: span 3; }
+.c-certs { grid-column: span 3; }
+.c-skills { grid-column: span 3; }
+.c-experience { grid-column: span 6; }
